@@ -1,8 +1,8 @@
-# yida_uva_ws
+# PX4_TrackPeople
 
-## 写在最前
+## 相关说明
 
-- 本项目基于Linux、ROS、Yolov5、C/C++
+- 本项目技术栈：Linux、ROS、Yolov5、C/C++
 
 ## Yolov5
 
@@ -14,7 +14,7 @@
 ### `object_detect` 目录
 
 - 目标识别任务
-  - Yolov5仓库
+  - Yolov5仓库源码
 
 ### `object_track` 目录
 
@@ -25,25 +25,38 @@
 
 ### 仿真
 
+- 开启四个终端，分别执行以下四个命令
+
 - 启动gazebo
   ```bash
-  
+  make px4_sitl_default gazebo
   ```
+
 - 机载电脑与PX飞控建立连接
 
   ```bash
-  roslaunch mavros px4.launch
+  roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
   ```
 
-- 运行 `takeoff` 节点
-
-  ```c
-  rosrun offboard takeoff
+- 运行 `object_track_node` 节点
+  ```bash
+  source ./devel/setup.zsh
   ```
 
-- 将遥控器offboard开关闭合，油门推至中位，等待无人机起飞
+  ```bash
+  rosrun object_track object_track_node
+  ```
 
-### offboard 程序自动控制飞行
+- 运行 `my_detect` 节点
+  ```bash
+  source ./devel/setup.zsh
+  ```
+
+  ```bash
+  rosrun object_detect my_detect.py
+  ```
+
+### 真机
 
 - 机载电脑与PX飞控建立连接
 
@@ -51,53 +64,31 @@
   roslaunch mavros px4.launch
   ```
 
-- 运行 `offboard_test` 节点
-
+- 运行 `object_track_node` 节点
   ```bash
-  rosrun offboard offboard_test
+  source ./devel/setup.zsh
   ```
-
-- 将遥控器offboard开关闭合，油门推至中位，无人机开始执行程序规划的路线：
-
-  - 先起飞，起飞高度为 `TAKOFF_HIGH`
-  - 向机体x方向 `1m/s` 移动 8s
-  - 向机体x方向 `1m/s` 且偏航速度 `0.5` 移动 15s（往左画圈）
-  - 向机体x方向 `1m/s` 且偏航速度 `-0.5` 移动 15s（晚右画圈）
-  - 返回起飞点
-
-- 程序退出方式：
-
-  - 方法一（程序内写好的）：拨动6通道，使6通道的值大于1500
-  - 方法二：` ctrl+c`
-
-### 目标识别飞行（初步实现）
-
-- 机载电脑与PX飞控建立连接
-
-  ```bash
-  roslaunch mavros px4.launch
-  ```
-
-- 运行Yolov5目标检测程序，如：
-
-  ```bash
-  python3 detect.py --weights yolov5s.pt --source 0 --view-img --conf-thres 0.40 --save-txt --classes 0
-  ```
-
-- 运行 `object_track_node` 目标跟踪节点
 
   ```bash
   rosrun object_track object_track_node
   ```
 
-- 将遥控器offboard开关闭合，油门推至中位，无人机开始执行程序
+- 运行 `my_detect` 节点
+  ```bash
+  source ./devel/setup.zsh
+  ```
 
-  - 程序刚开始默认锁定的目标点在图像的中心，即 `(0.5, 0.5)` ，需要将目标中心点移至到图像中心，程序才会自动锁定目标
-  - 待目标成功锁定后，目标移动，无人机将进行跟踪任务
-  - ........
+  ```bash
+  rosrun object_detect my_detect.py
+  ```
 
-- **补充：控制算法需优化，程序代码需优化.......**
+- 将遥控器offboard开关闭合，油门推至中位，无人机开始执行程序规划的路线：
 
-## 补充
+  - 先起飞，起飞高度为 `TAKOFF_HIGH`
+  - ......
 
-- 代码的实现，详见程序代码，相对有较多的**中文**注释！
+- 程序退出方式：
+
+  - 方法一（程序内写好的）：拨动6通道，使6通道的值大于1500
+  - 方法二：`ctrl+c`
+
